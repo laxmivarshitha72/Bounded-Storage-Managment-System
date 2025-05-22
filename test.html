@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management System</title>
+    <style>
+        :root {
+            --blue-color: #4285F4; /* Google blue */
+            --yellow-color: #FBBC05; /* Google yellow */
+            --white-color: #ffffff;
+            --light-gray: #f5f5f5;
+            --dark-gray: #333333;
+            --border-color: #e0e0e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Login Page Styles (kept as is since you liked it) */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--blue-color), #3367D6);
+        }
+
+        .login-box {
+            background: var(--white-color);
+            padding: 2.5rem;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .login-box h1 {
+            margin-bottom: 1.5rem;
+            color: var(--dark-gray);
+            font-size: 1.8rem;
+        }
+
+        .login-form .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .login-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark-gray);
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+
+        .login-form input:focus {
+            border-color: var(--blue-color);
+            outline: none;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: var(--blue-color);
+            color: var(--white-color);
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .login-btn:hover {
+            background-color: #3367D6;
+        }
+
+        /* Dashboard Styles */
+        .dashboard {
+            display: none;
+        }
+
+        .header {
+            background-color: var(--white-color);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: var(--blue-color);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--blue-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white-color);
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: var(--blue-color);
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .main-content {
+            padding: 2rem 0;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--dark-gray);
+            font-weight: 500;
+        }
+
+        .template-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        .template-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .issued-btn {
+            background-color: var(--blue-color);
+            color: var(--white-color);
+        }
+
+        .issued-btn:hover {
+            background-color: #3367D6;
+        }
+
+        .stock-btn {
+            background-color: var(--yellow-color);
+            color: var(--dark-gray);
+        }
+
+        .stock-btn:hover {
+            background-color: #F9AB00;
+        }
+
+        .components-table {
+            width: 100%;
+            background-color: var(--white-color);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+        }
+
+        .components-table th, .components-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .components-table th {
+            background-color: var(--blue-color);
+            color: var(--white-color);
+            font-weight: 500;
+        }
+
+        .components-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .components-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .component-actions {
+            background-color: var(--white-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .component-actions h2 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--dark-gray);
+            font-weight: 500;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 0.8rem 1.2rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .em-btn {
+            background-color: var(--blue-color);
+            color: var(--white-color);
+        }
+
+        .em-btn:hover {
+            background-color: #3367D6;
+        }
+
+        .fm-btn {
+            background-color: var(--yellow-color);
+            color: var(--dark-gray);
+        }
+
+        .fm-btn:hover {
+            background-color: #F9AB00;
+        }
+
+        .archive-btn {
+            background-color: var(--white-color);
+            color: var(--blue-color);
+            border: 1px solid var(--blue-color);
+        }
+
+        .archive-btn:hover {
+            background-color: #f0f5ff;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .action-buttons, .template-buttons {
+                flex-direction: column;
+            }
+            
+            .components-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div class="login-container" id="loginPage">
+        <div class="login-box">
+            <h1>Inventory Management System</h1>
+            <form class="login-form" id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter your username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="login-btn">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="dashboard" id="dashboard">
+        <header class="header">
+            <div class="container header-content">
+                <div class="logo">IMS Pro</div>
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">A</div>
+                    <button class="logout-btn" id="logoutBtn">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="container">
+                <h1 class="page-title">Components for <span id="userNameDisplay">Admin 1</span></h1>
+                
+                <!-- Small Template Buttons -->
+                <div class="template-buttons">
+                    <button class="template-btn issued-btn" id="issuedBtn">ISSUED</button>
+                    <button class="template-btn stock-btn" id="stockBtn">STOCK</button>
+                </div>
+                
+                <!-- Components Table -->
+                <table class="components-table">
+                    <thead>
+                        <tr>
+                            <th>Component ID</th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Issued To</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>CMP-001</td>
+                            <td>Electrical Module</td>
+                            <td>EM</td>
+                            <td>Issued</td>
+                            <td>2023-05-15</td>
+                            <td>John Doe</td>
+                        </tr>
+                        <tr>
+                            <td>CMP-002</td>
+                            <td>Frequency Modulator</td>
+                            <td>FM</td>
+                            <td>Returned</td>
+                            <td>2023-05-10</td>
+                            <td>Jane Smith</td>
+                        </tr>
+                        <tr>
+                            <td>CMP-003</td>
+                            <td>Power Converter</td>
+                            <td>EM</td>
+                            <td>In Stock</td>
+                            <td>2023-05-05</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td>CMP-004</td>
+                            <td>Signal Processor</td>
+                            <td>FM</td>
+                            <td>Issued</td>
+                            <td>2023-05-18</td>
+                            <td>Mike Johnson</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <!-- Component Actions -->
+                <div class="component-actions">
+                    <h2>Component Actions</h2>
+                    <div class="action-buttons">
+                        <button class="action-btn em-btn" id="emBtn">EM</button>
+                        <button class="action-btn fm-btn" id="fmBtn">FM</button>
+                        <button class="action-btn archive-btn" id="archiveBtn">ARCHIVE</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Sample users (for frontend demo)
+const authorizedUsers = [
+    { username: "admin1", password: "pass1", name: "Admin 1" },
+    { username: "admin2", password: "pass2", name: "Admin 2" }
+];
+
+// DOM Elements
+const loginPage = document.getElementById('loginPage');
+const dashboard = document.getElementById('dashboard');
+const loginForm = document.getElementById('loginForm');
+const usernameInput = document.getElementById('username');
+const passwordInput = document.getElementById('password');
+const logoutBtn = document.getElementById('logoutBtn');
+const userAvatar = document.getElementById('userAvatar');
+const userNameDisplay = document.getElementById('userNameDisplay');
+
+// Current user
+let currentUser = null;
+let inventoryData = [];
+
+// Login form submission
+loginForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value.trim();
+    
+    // Check if user exists (frontend demo)
+    const user = authorizedUsers.find(u => u.username === username && u.password === password);
+    
+    if (user) {
+        currentUser = user;
+        
+        // Send login request to backend (optional)
+        try {
+            const response = await fetch('http://localhost:3000/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            
+            if (response.ok) {
+                showDashboard();
+            } else {
+                alert('Login failed. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Server error. Please try again.');
+        }
+    } else {
+        alert('Invalid username or password.');
+    }
+});
+
+// Logout button click
+logoutBtn.addEventListener('click', function() {
+    currentUser = null;
+    showLoginPage();
+    loginForm.reset();
+});
+
+// Load inventory data from backend
+async function loadInventoryData() {
+    try {
+        const response = await fetch('http://localhost:3000/api/inventory');
+        inventoryData = await response.json();
+        updateTable();
+    } catch (error) {
+        console.error('Error loading inventory:', error);
+    }
+}
+
+// Update table with current data
+function updateTable() {
+    const tbody = document.querySelector('.components-table tbody');
+    tbody.innerHTML = '';
+    
+    inventoryData.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${item['Component ID'] || item.id}</td>
+            <td>${item.Name || item.name}</td>
+            <td>${item.Type || item.type}</td>
+            <td>${item.Status || item.status}</td>
+            <td>${item.Date || item.date}</td>
+            <td>${item['Issued To'] || item.issuedTo}</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// Show dashboard
+async function showDashboard() {
+    loginPage.style.display = 'none';
+    dashboard.style.display = 'block';
+    
+    // Update user info
+    userNameDisplay.textContent = currentUser.name;
+    userAvatar.textContent = currentUser.name.charAt(0);
+    
+    // Load inventory data from backend
+    await loadInventoryData();
+}
+
+// Show login page
+function showLoginPage() {
+    loginPage.style.display = 'flex';
+    dashboard.style.display = 'none';
+}
+    </script>
+</body>
+</html>
