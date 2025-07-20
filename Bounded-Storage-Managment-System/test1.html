@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bonded Stores Management System</title>
+    <style>
+    /* Base Styles */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Roboto', Arial, sans-serif;
+    }
+    
+    body {
+        background-color: #f5f5f5;
+        color: #333;
+        line-height: 1.6;
+    }
+    
+    .container {
+        width: 90%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+    
+    /* Login Page Styles */
+    .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-color: #4285F4; /* Google Blue */
+    }
+    
+    .login-box {
+        background-color: white;
+        padding: 2.5rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+    }
+    
+    .login-box h1 {
+        color: #4285F4; /* Google Blue */
+        margin-bottom: 1.5rem;
+        font-size: 1.8rem;
+    }
+    
+    .login-form {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .form-group {
+        margin-bottom: 1.2rem;
+        text-align: left;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: #555;
+    }
+    
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus {
+        border-color: #4285F4; /* Google Blue */
+        outline: none;
+    }
+    
+    .login-btn {
+        background-color: #FBBC05; /* Google Yellow */
+        color: #202124;
+        border: none;
+        padding: 0.8rem;
+        border-radius: 4px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        margin-top: 0.5rem;
+    }
+    
+    .login-btn:hover {
+        background-color: #F9AB00; /* Darker Yellow */
+    }
+    
+    /* Dashboard Styles */
+    .dashboard {
+        display: none;
+    }
+    
+    .header {
+        background-color: #4285F4; /* Google Blue */
+        color: white;
+        padding: 1rem 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .logo {
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+    
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        background-color: #FBBC05; /* Google Yellow */
+        color: #202124;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+    
+    .logout-btn {
+        background-color: #FBBC05; /* Google Yellow */
+        color: #202124;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    
+    .logout-btn:hover {
+        background-color: #F9AB00; /* Darker Yellow */
+    }
+    
+    /* Main Content Styles */
+    .main-content {
+        padding: 2rem 0;
+    }
+    
+    .page-title {
+        color: #4285F4; /* Google Blue */
+        margin-bottom: 2rem;
+        font-size: 1.8rem;
+    }
+    
+    /* Component Actions */
+    .component-actions {
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .component-actions h2 {
+        color: #4285F4; /* Google Blue */
+        margin-bottom: 1.5rem;
+        font-size: 1.3rem;
+    }
+    
+    .action-btn {
+        background-color: #FBBC05; /* Google Yellow */
+        color: #202124;
+        border: none;
+        padding: 0.8rem 1.5rem;
+        border-radius: 4px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        font-size: 1rem;
+        margin: 0.5rem;
+    }
+    
+    .action-btn:hover {
+        background-color: #F9AB00; /* Darker Yellow */
+    }
+    
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+    
+    .modal-content {
+        background-color: white;
+        margin: 2% auto;
+        padding: 2rem;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 900px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    
+    .close:hover {
+        color: #000;
+    }
+    
+    .issue-form {
+        margin-top: 1rem;
+    }
+    
+    .issue-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        border-bottom: 2px solid #4285F4;
+        padding-bottom: 1rem;
+    }
+    
+    .issue-header h2 {
+        color: #4285F4;
+        margin-bottom: 0.5rem;
+        text-decoration: underline;
+    }
+    
+    .issue-header h3 {
+        color: #4285F4;
+        margin-bottom: 0.5rem;
+        text-decoration: underline;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .form-row-single {
+        margin-bottom: 1rem;
+    }
+    
+    .issue-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+    }
+    
+    .issue-table th,
+    .issue-table td {
+        border: 1px solid #ddd;
+        padding: 0.5rem;
+        text-align: left;
+    }
+    
+    .issue-table th {
+        background-color: #4285F4;
+        color: white;
+        font-weight: 500;
+    }
+    
+    .issue-table input,
+    .issue-table select {
+        width: 100%;
+        padding: 0.3rem;
+        border: none;
+        background: transparent;
+    }
+    
+    .add-row-btn {
+        background-color: #34A853;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-bottom: 1rem;
+    }
+    
+    .add-row-btn:hover {
+        background-color: #2d8f43;
+    }
+    
+    .submit-btn {
+        background-color: #4285F4;
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 4px;
+        font-weight: 500;
+        cursor: pointer;
+        font-size: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .submit-btn:hover {
+        background-color: #3367d6;
+    }
+    
+    /* Components Table */
+    .components-table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .components-table th {
+        background-color: #4285F4; /* Google Blue */
+        color: white;
+        padding: 1rem;
+        text-align: left;
+    }
+    
+    .components-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .components-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .components-table tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    /* Storage specific columns */
+    .components-table th:nth-child(9),
+    .components-table td:nth-child(9),
+    .components-table th:nth-child(10),
+    .components-table td:nth-child(10) {
+        width: 100px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .login-box {
+            padding: 1.5rem;
+        }
+        
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .modal-content {
+            margin: 5% auto;
+            padding: 1rem;
+        }
+        
+        .components-table {
+            display: block;
+            overflow-x: auto;
+        }
+    }
+
+    #industryInputContainer{
+        display:none;
+        margin-top:10px;
+    }
+
+    /* Digital Signature Styles */
+.signature-container {
+    margin-top: 2rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: #f9f9f9;
+}
+
+.signature-container h3 {
+    color: #4285F4;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.signature-canvas {
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    display: block;
+    margin: 0 auto 1rem auto;
+    cursor: crosshair;
+    background-color: white;
+}
+
+.signature-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.signature-btn {
+    background-color: #4285F4;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.signature-btn:hover {
+    background-color: #3367d6;
+}
+
+.signature-btn.clear {
+    background-color: #EA4335;
+}
+
+.signature-btn.clear:hover {
+    background-color: #d33b2c;
+}
+
+</style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div class="login-container" id="loginPage">
+        <div class="login-box">
+            <h1>Bonded Stores Management System</h1>
+            <form class="login-form" id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter your username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="login-btn">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="dashboard" id="dashboard">
+        <header class="header">
+            <div class="container header-content">
+                <div class="logo">BMS Pro</div>
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">A</div>
+                    <button class="logout-btn" id="logoutBtn">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="container">
+                <h1 class="page-title">Components for <span id="userNameDisplay">Admin</span></h1>
+                
+                <!-- Component Actions -->
+                <div class="component-actions">
+                    <h2>Component Management</h2>
+                    <button class="action-btn" id="issueBtn">Issue Components</button>
+                    <button class="action-btn" id="storageBtn">Storage Components</button>
+                    <button class="action-btn" id="showAllBtn">All Components</button>
+                    <button class="action-btn" id="showIssuedBtn">Issued Only</button>
+                    <button class="action-btn" id="showStoredBtn">Stored Only</button>
+                </div>
+                
+                <!-- Components Table -->
+                <table class="components-table">
+                    <thead>
+                        <tr>
+                            <th>Component ID</th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Issued To</th>
+                            <th>SO No.</th>
+                            <th>Issue Date</th>
+                            <th>Storage Temp</th>
+                            <th>Humidity</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryTableBody">
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Issue Modal -->
+    <div id="issueModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="issue-header">
+                <h2>DIRECTORATE OF SPECIAL PROJECTS (DSP)</h2>
+                <h2>NAME</h2>
+                <div style="display: flex;justify-content:center; align-items: center;gap:10px; margin-top:10px">
+                <h2 style="margin:0">TECHNOLOGY DIRECTORATE</h2>
+                <select id="requestType" required>
+                            <option value="">Choose an option</option>
+                            <option value="eps">EPS</option>
+                            <option value="aocs">AOCS</option>
+                            <option value="cnds">CNDS</option>
+                        </select>
+                        </div>
+                <h2>ION</h2>
+            </div>
+            
+            <form class="issue-form" id="issueForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="issueNo">ION No.:</label>
+                        <input type="text" id="issueNo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="issueDate">Date:</label>
+                        <input type="date" id="issueDate" required>
+                    </div>
+                </div>
+                
+                <div class="form-row-single">
+                    <div class="form-group">
+                        <label>It is requested that the following components be issued as </label>
+                        <select id="modelSelect" onChange="updateColumnHeading()">
+                            <option value="">Choose the model (EM / FM)</option>
+                            <option value="FM">FM</option>
+                            <option value="EM">EM</option>
+                        </select>
+                    </div>
+                </div>
+                
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="issueTo">to (name/designation):</label>
+                        <input type="text" id="issueTo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="issueFor">for:</label>
+                        <select id="issueFor" required>
+                            <option value="">Choose the usage</option>
+                            <option value="project-work">Project Work</option>
+                            <option value="testing">Testing</option>
+                            <option value="development">Development</option>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="industry-partner">Industry partner</option>
+                        </select>
+                        <div id = "industryInputContainer">
+                            <lable for="industryName">Entry Industry Partner Name:</lable>
+                            <input type="text" id="industryName" name="industryName">32
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="button" class="add-row-btn" id="addRowBtn">Add Component Row</button>
+                
+                <table class="issue-table" id="componentsTable">
+                    <thead>
+                        <tr>
+                            <th>S.No.</th>
+                            <th>S.No as per SO</th>
+                            <th>Part No</th>
+                            <th>Part Description</th>
+                            <th>Manufacturer</th>
+                            <th>Quality grade</th>
+                            <th>Sub System</th>
+                            <th>Quantity for each Subsystem</th>
+                            <th id="quantityHeader">Total quantity of 
+
+                                
+                            </th>
+                            <th>SO No.</th>
+                            <th>SO (upload pdf)</th>
+                            <th>Issue date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="componentsTableBody">
+                        <tr>
+                            <td><input type="text" name="sno[]" value="1" readonly></td>
+                            <td><input type="text" name="sno_so[]"></td>
+                            <td><input type="text" name="part_no[]" required></td>
+                            <td><input type="text" name="part_desc[]" required></td>
+                            <td><input type="text" name="manufacturer[]"></td>
+                            <td><input type="text" name="quality_grade[]"></td>
+                            <td><input type="text" name="sub_system[]"></td>
+                            <td><input type="number" name="quantity_each[]" min="1"></td>
+                            <td><input type="number" name="total_quantity[]" min="1" required></td>
+                            <td><input type="text" name="so_no[]"></td>
+                            <td><input type="file" name = "soPdf[]"accept="application/pdf"/></td>
+                            <td><input type="date" name="issue_date[]" required></td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="form-row-single" style="margin-top: 2rem;">
+    <div class="form-group">
+        <label for="systemManager">(Name / Designation)</label>
+        <input type="text" id="systemManager"  required>
+    </div>
+</div>
+
+<!-- Digital Signature Section -->
+<div class="signature-container">
+    <h3>Digital Signature</h3>
+    <canvas id="issueSignatureCanvas" class="signature-canvas" width="400" height="150"></canvas>
+    <div class="signature-buttons">
+        <button type="button" class="signature-btn clear" onclick="clearSignature('issueSignatureCanvas')">Clear</button>
+        <button type="button" class="signature-btn" onclick="saveSignature('issueSignatureCanvas')">Save Signature</button>
+    </div>
+    <p style="text-align: center; font-size: 0.9rem; color: #666;">Sign above using your mouse or touch</p>
+</div>
+                
+                <button type="submit" class="submit-btn">Submit Issue</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Storage Modal -->
+    <div id="storageModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="storageModalClose">&times;</span>
+            <div class="issue-header">
+                <h2>DIRECTORATE OF SPECIAL PROJECTS (DSP)</h2>
+                <h2>NAME</h2>
+                <div style="display: flex;justify-content:center; align-items: center;gap:10px; margin-top:10px">
+                <h2 style="margin:0">TECHNOLOGY DIRECTORATE</h2>
+                <select id="requestType" required>
+                            <option value="">Choose an option</option>
+                            <option value="eps">EPS</option>
+                            <option value="aocs">AOCS</option>
+                            <option value="cnds">CNDS</option>
+                        </select>
+                        </div>
+                <h2>ION</h2>
+            </div>
+            
+            <form class="issue-form" id="storageForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="storageNo">ION No.:</label>
+                        <input type="text" id="storageNo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="storageDate">Date:</label>
+                        <input type="date" id="storageDate" required>
+                    </div>
+                </div>
+                
+                <div class="form-row-single">
+                    <div class="form-group">
+                        <label>Sub: Storage of Electromagnetic relays under SO No. ________</label>
+                        <input type="text" id="soNumber" placeholder="Enter SO Number" required>
+                    </div>
+                </div>
+                
+                <button type="button" class="add-row-btn" id="addStorageRowBtn">Add Storage Row</button>
+                
+                <table class="issue-table" id="storageTable">
+                    <thead>
+                        <tr>
+                            <th>S.No.</th>
+                            <th>S.No as PO</th>
+                            <th>Part No</th>
+                            <th>Part Description</th>
+                            <th>Grade</th>
+                            <th>Quantity</th>
+                            <th>Storage Temperature</th>
+                            <th>Relative Humidity</th>
+                            <th>Storage data</th>
+                            <th>Delivery date as per PO</th>
+                        </tr>
+                    </thead>
+                    <tbody id="storageTableBody">
+                        <tr>
+                            <td><input type="text" name="storage_sno[]" value="1" readonly></td>
+                            <td><input type="text" name="sno_po[]"></td>
+                            <td><input type="text" name="storage_part_no[]" required></td>
+                            <td><input type="text" name="storage_part_desc[]" required></td>
+                            <td><input type="text" name="grade[]"></td>
+                            <td><input type="number" name="storage_quantity[]" min="1" required></td>
+                            <td><input type="text" name="storage_temp[]"></td>
+                            <td><input type="text" name="relative_humidity[]"></td>
+                            <td><input type="date" name="storage_data[]"></td>
+                            <td><input type="date" name="delivery_date[]"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="form-row-single" style="margin-top: 2rem;">
+    <div class="form-group">
+        <label for="storageSystemManager">(NAME)</label>
+        <input type="text" id="storageSystemManager" placeholder="System Manager PSE" required>
+    </div>
+</div>
+
+<!-- Digital Signature Section -->
+<div class="signature-container">
+    <h3>Digital Signature</h3>
+    <canvas id="storageSignatureCanvas" class="signature-canvas" width="400" height="150"></canvas>
+    <div class="signature-buttons">
+        <button type="button" class="signature-btn clear" onclick="clearSignature('storageSignatureCanvas')">Clear</button>
+        <button type="button" class="signature-btn" onclick="saveSignature('storageSignatureCanvas')">Save Signature</button>
+    </div>
+    <p style="text-align: center; font-size: 0.9rem; color: #666;">Sign above using your mouse or touch</p>
+</div>
+                
+                <button type="submit" class="submit-btn">Submit Storage</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    // DOM Elements
+    const loginPage = document.getElementById('loginPage');
+    const dashboard = document.getElementById('dashboard');
+    const loginForm = document.getElementById('loginForm');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const userAvatar = document.getElementById('userAvatar');
+    const userNameDisplay = document.getElementById('userNameDisplay');
+    const inventoryTableBody = document.getElementById('inventoryTableBody');
+    const issueBtn = document.getElementById('issueBtn');
+    const issueModal = document.getElementById('issueModal');
+    const issueForm = document.getElementById('issueForm');
+    const closeModal = document.querySelector('.close');
+    const addRowBtn = document.getElementById('addRowBtn');
+    const componentsTableBody = document.getElementById('componentsTableBody');
+    const storageBtn = document.getElementById('storageBtn');
+    const storageModal = document.getElementById('storageModal');
+    const storageForm = document.getElementById('storageForm');
+    const storageModalClose = document.getElementById('storageModalClose');
+    const addStorageRowBtn = document.getElementById('addStorageRowBtn');
+    const storageTableBody = document.getElementById('storageTableBody');
+    const showAllBtn = document.getElementById('showAllBtn');
+    const showIssuedBtn = document.getElementById('showIssuedBtn');
+    const showStoredBtn = document.getElementById('showStoredBtn');
+    
+    let currentUser = null;
+    let refreshInterval;
+    let componentRowCount = 1;
+    let storageRowCount = 1;
+    let currentView = 'all';
+
+    // Modal functionality
+    issueBtn.addEventListener('click', function() {
+        issueModal.style.display = 'block';
+        document.getElementById('issueDate').valueAsDate = new Date();
+    });
+
+    closeModal.addEventListener('click', function() {
+        issueModal.style.display = 'none';
+        issueForm.reset();
+        resetComponentRows();
+    });
+
+    window.addEventListener('click', function(event) {
+        if (event.target === issueModal) {
+            issueModal.style.display = 'none';
+            issueForm.reset();
+            resetComponentRows();
+        }
+    });
+
+    // Storage Modal functionality
+    storageBtn.addEventListener('click', function() {
+        storageModal.style.display = 'block';
+        document.getElementById('storageDate').valueAsDate = new Date();
+    });
+
+    storageModalClose.addEventListener('click', function() {
+        storageModal.style.display = 'none';
+        storageForm.reset();
+        resetStorageRows();
+    });
+
+    // Update existing window click event to handle storage modal
+    window.addEventListener('click', function(event) {
+        if (event.target === issueModal) {
+            issueModal.style.display = 'none';
+            issueForm.reset();
+            resetComponentRows();
+        } else if (event.target === storageModal) {
+            storageModal.style.display = 'none';
+            storageForm.reset();
+            resetStorageRows();
+        }
+    });
+
+    // Add component row functionality
+    addRowBtn.addEventListener('click', function() {
+        componentRowCount++;
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td><input type="text" name="sno[]" value="${componentRowCount}" readonly></td>
+            <td><input type="text" name="sno_so[]"></td>
+            <td><input type="text" name="part_no[]" required></td>
+            <td><input type="text" name="part_desc[]" required></td>
+            <td><input type="text" name="manufacturer[]"></td>
+            <td><input type="text" name="quality_grade[]"></td>
+            <td><input type="text" name="sub_system[]"></td>
+            <td><input type="number" name="quantity_each[]" min="1"></td>
+            <td><input type="number" name="total_quantity[]" min="1" required></td>
+            <td><input type="text" name="so_no[]"></td>
+            <td><input type="date" name="issue_date[]" required></td>
+        `;
+        componentsTableBody.appendChild(newRow);
+    });
+
+    // Add storage row functionality
+    addStorageRowBtn.addEventListener('click', function() {
+        storageRowCount++;
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td><input type="text" name="storage_sno[]" value="${storageRowCount}" readonly></td>
+            <td><input type="text" name="sno_po[]"></td>
+            <td><input type="text" name="storage_part_no[]" required></td>
+            <td><input type="text" name="storage_part_desc[]" required></td>
+            <td><input type="text" name="grade[]"></td>
+            <td><input type="number" name="storage_quantity[]" min="1" required></td>
+            <td><input type="text" name="storage_temp[]"></td>
+            <td><input type="text" name="relative_humidity[]"></td>
+            <td><input type="date" name="storage_data[]"></td>
+            <td><input type="date" name="delivery_date[]"></td>
+        `;
+        storageTableBody.appendChild(newRow);
+    });
+
+    // Reset storage rows
+    function resetStorageRows() {
+        storageRowCount = 1;
+        storageTableBody.innerHTML = `
+            <tr>
+                <td><input type="text" name="storage_sno[]" value="1" readonly></td>
+                <td><input type="text" name="sno_po[]"></td>
+                <td><input type="text" name="storage_part_no[]" required></td>
+                <td><input type="text" name="storage_part_desc[]" required></td>
+                <td><input type="text" name="grade[]"></td>
+                <td><input type="number" name="storage_quantity[]" min="1" required></td>
+                <td><input type="text" name="storage_temp[]"></td>
+                <td><input type="text" name="relative_humidity[]"></td>
+                <td><input type="date" name="storage_data[]"></td>
+                <td><input type="date" name="delivery_date[]"></td>
+            </tr>
+        `;
+    }
+
+    // Reset component rows
+    function resetComponentRows() {
+        componentRowCount = 1;
+        componentsTableBody.innerHTML = `
+            <tr>
+                <td><input type="text" name="sno[]" value="1" readonly></td>
+                <td><input type="text" name="sno_so[]"></td>
+                <td><input type="text" name="part_no[]" required></td>
+                <td><input type="text" name="part_desc[]" required></td>
+                <td><input type="text" name="manufacturer[]"></td>
+                <td><input type="text" name="quality_grade[]"></td>
+                <td><input type="text" name="sub_system[]"></td>
+                <td><input type="number" name="quantity_each[]" min="1"></td>
+                <td><input type="number" name="total_quantity[]" min="1" required></td>
+                <td><input type="text" name="so_no[]"></td>
+                <td><input type="date" name="issue_date[]" required></td>
+            </tr>
+        `;
+    }
+
+    // Login function
+    loginForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+        
+        try {
+            const response = await fetch('http://localhost:3000/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    currentUser = { name: username };
+                    showDashboard();
+                } else {
+                    alert('Login failed: ' + (data.message || 'Invalid credentials'));
+                }
+            } else {
+                const error = await response.json();
+                alert('Login failed: ' + (error.message || response.statusText));
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            alert('Network error. Is the server running?');
+        }
+    });
+
+    // Logout function
+    logoutBtn.addEventListener('click', function() {
+        clearInterval(refreshInterval);
+        loginPage.style.display = 'flex';
+        dashboard.style.display = 'none';
+        loginForm.reset();
+    });
+
+    // Issue form submission
+    issueForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(issueForm);
+        const components = [];
+        
+        // Get all component rows
+        const rows = componentsTableBody.querySelectorAll('tr');
+        rows.forEach((row, index) => {
+            const inputs = row.querySelectorAll('input');
+            if (inputs[2].value.trim()) { // Check if part number is filled
+                const component = {
+                    serialNo: inputs[0].value,
+                    snoSO: inputs[1].value,
+                    partNo: inputs[2].value,
+                    partDescription: inputs[3].value,
+                    manufacturer: inputs[4].value,
+                    qualityGrade: inputs[5].value,
+                    subSystem: inputs[6].value,
+                    quantityEach: inputs[7].value || 1,
+                    totalQuantity: inputs[8].value,
+                    soNo: inputs[9].value,
+                    issueDate: inputs[10].value
+                };
+                components.push(component);
+            }
+        });
+        
+        const issueData = {
+            issueNo: document.getElementById('issueNo').value,
+            issueDate: document.getElementById('issueDate').value,
+            requestText: document.getElementById('requestType').value,
+            issueTo: document.getElementById('issueTo').value,
+            issueFor: document.getElementById('issueFor').value,
+            systemManager: document.getElementById('systemManager').value,
+            components: components
+        };
+        
+        try {
+            const response = await fetch('http://localhost:3000/api/issue', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(issueData)
+            });
+            
+            if (response.ok) {
+                alert('Components issued successfully!');
+                issueModal.style.display = 'none';
+                issueForm.reset();
+                resetComponentRows();
+                await loadInventory();
+            } else {
+                alert('Failed to issue components');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Connection error. Please try again.');
+        }
+    });
+
+    // Storage form submission
+    storageForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const components = [];
+        const rows = storageTableBody.querySelectorAll('tr');
+        
+        rows.forEach((row) => {
+            const inputs = row.querySelectorAll('input');
+            if (inputs[2].value.trim()) { // Check if part number is filled
+                const component = {
+                    serialNo: inputs[0].value,
+                    snoPO: inputs[1].value,
+                    partNo: inputs[2].value,
+                    partDescription: inputs[3].value,
+                    grade: inputs[4].value,
+                    quantity: inputs[5].value,
+                    storageTemp: inputs[6].value,
+                    relativeHumidity: inputs[7].value,
+                    storageData: inputs[8].value,
+                    deliveryDate: inputs[9].value
+                };
+                components.push(component);
+            }
+        });
+        
+        const storageData = {
+            storageNo: document.getElementById('storageNo').value,
+            storageDate: document.getElementById('storageDate').value,
+            soNumber: document.getElementById('soNumber').value,
+            systemManager: document.getElementById('storageSystemManager').value,
+            components: components
+        };
+        
+        try {
+            const response = await fetch('http://localhost:3000/api/storage', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(storageData)
+            });
+            
+            if (response.ok) {
+                alert('Components stored successfully!');
+                storageModal.style.display = 'none';
+                storageForm.reset();
+                resetStorageRows();
+                await loadInventory();
+            } else {
+                alert('Failed to store components');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Connection error. Please try again.');
+        }
+    });
+
+    // View toggle buttons
+    showAllBtn.addEventListener('click', function() {
+        currentView = 'all';
+        loadInventory();
+    });
+
+    showIssuedBtn.addEventListener('click', function() {
+        currentView = 'issued';
+        loadInventory();
+    });
+
+    showStoredBtn.addEventListener('click', function() {
+        currentView = 'stored';
+        loadInventory();
+    });
+
+    // Load inventory data
+    async function loadInventory() {
+        try {
+            const response = await fetch('http://localhost:3000/api/inventory?t=' + Date.now());
+            let data = await response.json();
+            
+            // Filter data based on current view
+            if (currentView === 'issued') {
+                data = data.filter(item => item.Type === 'Issued Component');
+            } else if (currentView === 'stored') {
+                data = data.filter(item => item.Type === 'Stored Component');
+            }
+            
+            updateTable(data);
+        } catch (error) {
+            console.error('Error loading inventory:', error);
+        }
+    }
+
+    // Update table with data
+    function updateTable(data) {
+        inventoryTableBody.innerHTML = '';
+        data.forEach(item => {
+            const row = document.createElement('tr');
+            
+            // Common fields
+            row.innerHTML = `
+                <td>${item['Component ID'] || '-'}</td>
+                <td>${item.Name || item['Part Description'] || '-'}</td>
+                <td>${item.Type || 'Issued Component'}</td>
+                <td>${item.Status || 'Issued'}</td>
+                <td>${item.Date || item['Issue Date'] || '-'}</td>
+                <td>${item['Issued To'] || '-'}</td>
+                <td>${item['SO No'] || item['SO Number'] || '-'}</td>
+                <td>${item['Issue Date'] || '-'}</td>
+            `;
+            
+            // Add storage-specific fields
+            const storageTempCell = document.createElement('td');
+            storageTempCell.textContent = item['Storage Temperature'] || '-';
+            row.appendChild(storageTempCell);
+            
+            const humidityCell = document.createElement('td');
+            humidityCell.textContent = item['Relative Humidity'] || '-';
+            row.appendChild(humidityCell);
+            
+            inventoryTableBody.appendChild(row);
+        });
+    }
+
+    // Show dashboard
+    async function showDashboard() {
+        loginPage.style.display = 'none';
+        dashboard.style.display = 'block';
+        userNameDisplay.textContent = currentUser.name;
+        userAvatar.textContent = currentUser.name.charAt(0).toUpperCase();
+        await loadInventory();
+        // Refresh data every 5 seconds
+        refreshInterval = setInterval(loadInventory, 5000);
+    }
+
+    function updateColumnHeading(){
+        const model=document.getElementById("modelSelect").value;
+        const quantityHeader=document.getElementById("quantityHeader");
+        if(model==="FM"){
+            quantityHeader.textContent="Total quantity of FM";
+        }else{
+            quantityHeader.textContent="Total quantity of EM";
+        }
+    }
+
+    // Digital Signature functionality
+let isDrawing = false;
+let signatures = {};
+
+// Initialize signature canvases
+function initSignatureCanvas(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext('2d');
+    
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    
+    // Mouse events
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseout', stopDrawing);
+    
+    // Touch events for mobile
+    canvas.addEventListener('touchstart', handleTouch);
+    canvas.addEventListener('touchmove', handleTouch);
+    canvas.addEventListener('touchend', stopDrawing);
+    
+    function startDrawing(e) {
+        isDrawing = true;
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+    }
+    
+    function draw(e) {
+        if (!isDrawing) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        ctx.lineTo(x, y);
+        ctx.stroke();
+    }
+    
+    function stopDrawing() {
+        if (isDrawing) {
+            isDrawing = false;
+            ctx.beginPath();
+        }
+    }
+    
+    function handleTouch(e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 
+                                         e.type === 'touchmove' ? 'mousemove' : 'mouseup', {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        });
+        canvas.dispatchEvent(mouseEvent);
+    }
+}
+
+// Clear signature
+function clearSignature(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    delete signatures[canvasId];
+}
+
+// Save signature
+function saveSignature(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    const dataURL = canvas.toDataURL();
+    signatures[canvasId] = dataURL;
+    alert('Signature saved successfully!');
+}
+
+// Initialize canvases when modals open
+const originalIssueBtn = issueBtn.addEventListener;
+issueBtn.addEventListener('click', function() {
+    issueModal.style.display = 'block';
+    document.getElementById('issueDate').valueAsDate = new Date();
+    setTimeout(() => initSignatureCanvas('issueSignatureCanvas'), 100);
+});
+
+const originalStorageBtn = storageBtn.addEventListener;
+storageBtn.addEventListener('click', function() {
+    storageModal.style.display = 'block';
+    document.getElementById('storageDate').valueAsDate = new Date();
+    setTimeout(() => initSignatureCanvas('storageSignatureCanvas'), 100);
+});
+
+    </script>
+    <script>
+    //text for industry partner
+    document.addEventListner("DOMContentLoaded",function(){
+        const selectBox = document.getElementById("issueFor");
+        const inputContainer = document.getElementById("industryInputContainer");
+        selectBox.addEventListner("change",function(){
+            if(selectBox.value==="industry-partner"){
+                inputContainer.style.display="block";
+            }else{
+                inputContainer.display="none";
+            }
+        });
+    });
+    </script>
+
+</body>
+</html>

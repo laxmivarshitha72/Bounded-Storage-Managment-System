@@ -492,6 +492,7 @@
         .signature-btn.clear:hover {
             background-color: #d33b2c;
         }
+        
     </style>
 </head>
 <body>
@@ -565,7 +566,7 @@
         </div>
     </div>
 
-    <!-- Rejection Modal -->
+    <!-- Rejection Modal  -->
     <div id="rejectionModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
@@ -578,326 +579,345 @@
 
     <script>
         // DOM Elements
-        const loginPage = document.getElementById('loginPage');
-        const dashboard = document.getElementById('dashboard');
-        const loginForm = document.getElementById('loginForm');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const userAvatar = document.getElementById('userAvatar');
-        const pendingRequestsContainer = document.getElementById('pendingRequestsContainer');
-        const approvalModal = document.getElementById('approvalModal');
-        const approvalRequestDetails = document.getElementById('approvalRequestDetails');
-        const confirmApproveBtn = document.getElementById('confirmApproveBtn');
-        const rejectBtn = document.getElementById('rejectBtn');
-        const rejectionModal = document.getElementById('rejectionModal');
-        const confirmRejectBtn = document.getElementById('confirmRejectBtn');
+        // DOM Elements
+const loginPage = document.getElementById('loginPage');
+const dashboard = document.getElementById('dashboard');
+const loginForm = document.getElementById('loginForm');
+const logoutBtn = document.getElementById('logoutBtn');
+const userAvatar = document.getElementById('userAvatar');
+const pendingRequestsContainer = document.getElementById('pendingRequestsContainer');
+const approvalModal = document.getElementById('approvalModal');
+const approvalRequestDetails = document.getElementById('approvalRequestDetails');
+const confirmApproveBtn = document.getElementById('confirmApproveBtn');
+const rejectBtn = document.getElementById('rejectBtn');
+const rejectionModal = document.getElementById('rejectionModal');
+const confirmRejectBtn = document.getElementById('confirmRejectBtn');
+
+let currentUser = null;
+let currentRequestId = null;
+let signatures = {};
+let isDrawing = false;
+
+// Login function for admin
+loginForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    
+    try {
+        const response = await fetch('http://localhost:3000/api/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
         
-        let currentUser = null;
-        let currentRequestId = null;
-        let signatures = {};
-        let isDrawing = false;
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                currentUser = data.user;
+                showDashboard();
+            } else {
+                alert('Login failed: ' + (data.message || 'Invalid credentials'));
+            }
+        } else {
+            const error = await response.json();
+            alert('Login failed: ' + (error.message || response.statusText));
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        alert('Network error. Is the server running?');
+    }
+});
 
-        // Login function for admin
-        loginForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
-            
-            try {
-                const response = await fetch('http://localhost:3000/api/admin/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success) {
-                        currentUser = data.user;
-                        showDashboard();
-                    } else {
-                        alert('Login failed: ' + (data.message || 'Invalid credentials'));
-                    }
-                } else {
-                    const error = await response.json();
-                    alert('Login failed: ' + (error.message || response.statusText));
+// Logout function
+logoutBtn.addEventListener('click', function() {
+    loginPage.style.display = 'flex';
+    dashboard.style.display = 'none';
+    loginForm.reset();
+    currentUser = null;
+});
+
+// Show dashboard
+function showDashboard() {
+    loginPage.style.display = 'none';
+    dashboard.style.display = 'block';
+    userAvatar.textContent = currentUser.name.charAt(0).toUpperCase();
+    loadPendingRequests();
+}
+
+// Load pending requests
+async function loadPendingRequests() {
+    try {
+        const response = await fetch('http://localhost:3000/api/requests/pending');
+        const requests = await response.json();
+        renderRequests(requests);
+    } catch (error) {
+        console.error('Error loading requests:', error);
+        alert('Failed to load pending requests');
+    }
+}
+
+// Render requests in the UI
+function renderRequests(requests) {
+    pendingRequestsContainer.innerHTML = '';
+    
+    if (requests.length === 0) {
+        pendingRequestsContainer.innerHTML = '<p>No pending requests found.</p>';
+        return;
+    }
+    
+    requests.forEach(request => {
+        const requestCard = document.createElement('div');
+        requestCard.className = 'request-card';
+        
+        const requestType = request.Type === 'Stored Component' ? 'Storage' : 'Issue';
+        const requestId = request['Issue No'] || request['Storage No'] || request['Component ID'];
+        
+        requestCard.innerHTML = `
+            <div class="request-header">
+                <h3>${requestType} Request: ${requestId}</h3>
+                <span>${request.Date}</span>
+            </div>
+            <div class="request-details">
+                <div class="detail-item">
+                    <div class="detail-label">Requested By:</div>
+                    <div>${request['Issued To'] || request['System Manager'] || 'N/A'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Components:</div>
+                    <div>${request['Name'] || request['Part Description'] || 'N/A'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Quantity:</div>
+                    <div>${request['Total Quantity'] || request['Storage Quantity'] || '1'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Purpose:</div>
+                    <div>${request['Issue For'] || 'Storage'}</div>
+                </div>
+            </div>
+            <div class="approval-actions">
+                <button class="action-btn approve-btn" data-request-id="${requestId}">Approve</button>
+                <button class="action-btn reject-btn" data-request-id="${requestId}">Reject</button>
+            </div>
+        `;
+        
+        pendingRequestsContainer.appendChild(requestCard);
+    });
+    
+    // Add event listeners to all approve/reject buttons
+    document.querySelectorAll('.approve-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            currentRequestId = this.getAttribute('data-request-id');
+            showApprovalModal(currentRequestId);
+        });
+    });
+    
+    document.querySelectorAll('.reject-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            currentRequestId = this.getAttribute('data-request-id');
+            showRejectionModal(currentRequestId);
+        });
+    });
+}
+
+// Show approval modal
+function showApprovalModal(requestId) {
+    approvalRequestDetails.innerHTML = `
+        <p>You are approving request <strong>${requestId}</strong></p>
+        <p>Please sign below to confirm approval.</p>
+    `;
+    approvalModal.style.display = 'block';
+    initSignatureCanvas('approvalSignatureCanvas');
+}
+
+// Show rejection modal
+function showRejectionModal(requestId) {
+    rejectionModal.style.display = 'block';
+}
+
+// Initialize signature canvas
+function initSignatureCanvas(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext('2d');
+    
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    
+    // Mouse events
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseout', stopDrawing);
+    
+    // Touch events for mobile
+    canvas.addEventListener('touchstart', handleTouch);
+    canvas.addEventListener('touchmove', handleTouch);
+    canvas.addEventListener('touchend', stopDrawing);
+    
+    function startDrawing(e) {
+        isDrawing = true;
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+    }
+    
+    function draw(e) {
+        if (!isDrawing) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        ctx.lineTo(x, y);
+        ctx.stroke();
+    }
+    
+    function stopDrawing() {
+        if (isDrawing) {
+            isDrawing = false;
+            ctx.beginPath();
+        }
+    }
+    
+    function handleTouch(e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 
+                          e.type === 'touchmove' ? 'mousemove' : 'mouseup', {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        });
+        canvas.dispatchEvent(mouseEvent);
+    }
+}
+
+// Clear signature
+function clearSignature(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    delete signatures[canvasId];
+}
+
+// Save signature
+function saveSignature(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    const dataURL = canvas.toDataURL();
+    signatures[canvasId] = dataURL;
+    alert('Signature saved successfully!');
+}
+
+// ===== UPDATED APPROVE FUNCTION =====
+confirmApproveBtn.addEventListener('click', async function() {
+    const approverName = document.getElementById('approverName').value.trim();
+    const signature = signatures['approvalSignatureCanvas'];
+    
+    if (!approverName) {
+        alert('Please enter your name/designation');
+        return;
+    }
+    
+    if (!signature) {
+        alert('Please provide your signature');
+        return;
+    }
+    
+    try {
+        const response = await fetch('http://localhost:3000/api/requests/approve', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                requestId: currentRequestId,
+                approvalData: {
+                    approvedBy: approverName,
+                    signature: signature
                 }
-            } catch (error) {
-                console.error('Login error:', error);
-                alert('Network error. Is the server running?');
-            }
+            })
         });
-
-        // Logout function
-        logoutBtn.addEventListener('click', function() {
-            loginPage.style.display = 'flex';
-            dashboard.style.display = 'none';
-            loginForm.reset();
-            currentUser = null;
-        });
-
-        // Show dashboard
-        function showDashboard() {
-            loginPage.style.display = 'none';
-            dashboard.style.display = 'block';
-            userAvatar.textContent = currentUser.name.charAt(0).toUpperCase();
-            loadPendingRequests();
-        }
-
-        // Load pending requests
-        async function loadPendingRequests() {
-            try {
-                const response = await fetch('http://localhost:3000/api/requests/pending');
-                const requests = await response.json();
-                renderRequests(requests);
-            } catch (error) {
-                console.error('Error loading requests:', error);
-                alert('Failed to load pending requests');
-            }
-        }
-
-        // Render requests in the UI
-        function renderRequests(requests) {
-            pendingRequestsContainer.innerHTML = '';
+        
+        if (response.ok) {
+            // Remove the approved request card immediately
+            document.querySelectorAll('.request-card').forEach(card => {
+                if (card.querySelector(`button[data-request-id="${currentRequestId}"]`)) {
+                    card.remove();
+                }
+            });
             
-            if (requests.length === 0) {
+            approvalModal.style.display = 'none';
+            clearSignature('approvalSignatureCanvas');
+            document.getElementById('approverName').value = '';
+            
+            // Show message if no pending requests left
+            if (document.querySelectorAll('.request-card').length === 0) {
                 pendingRequestsContainer.innerHTML = '<p>No pending requests found.</p>';
-                return;
             }
-            
-            requests.forEach(request => {
-                const requestCard = document.createElement('div');
-                requestCard.className = 'request-card';
-                
-                // Determine request type
-                const requestType = request.Type === 'Stored Component' ? 'Storage' : 'Issue';
-                const requestId = request['Issue No'] || request['Storage No'] || request['Component ID'];
-                
-                requestCard.innerHTML = `
-                    <div class="request-header">
-                        <h3>${requestType} Request: ${requestId}</h3>
-                        <span>${request.Date}</span>
-                    </div>
-                    <div class="request-details">
-                        <div class="detail-item">
-                            <div class="detail-label">Requested By:</div>
-                            <div>${request['Issued To'] || request['System Manager'] || 'N/A'}</div>
-                        </div>
-                        <div class="detail-item">
-                            <div class="detail-label">Components:</div>
-                            <div>${request['Name'] || request['Part Description'] || 'N/A'}</div>
-                        </div>
-                        <div class="detail-item">
-                            <div class="detail-label">Quantity:</div>
-                            <div>${request['Total Quantity'] || request['Storage Quantity'] || '1'}</div>
-                        </div>
-                        <div class="detail-item">
-                            <div class="detail-label">Purpose:</div>
-                            <div>${request['Issue For'] || 'Storage'}</div>
-                        </div>
-                    </div>
-                    <div class="approval-actions">
-                        <button class="action-btn approve-btn" data-request-id="${requestId}">Approve</button>
-                        <button class="action-btn reject-btn" data-request-id="${requestId}">Reject</button>
-                    </div>
-                `;
-                
-                pendingRequestsContainer.appendChild(requestCard);
-            });
-            
-            // Add event listeners to all approve/reject buttons
-            document.querySelectorAll('.approve-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    currentRequestId = this.getAttribute('data-request-id');
-                    showApprovalModal(currentRequestId);
-                });
-            });
-            
-            document.querySelectorAll('.reject-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    currentRequestId = this.getAttribute('data-request-id');
-                    showRejectionModal(currentRequestId);
-                });
-            });
+        } else {
+            alert('Failed to approve request');
         }
+    } catch (error) {
+        console.error('Approval error:', error);
+        alert('Failed to approve request');
+    }
+});
 
-        // Show approval modal
-        function showApprovalModal(requestId) {
-            // In a real app, you would fetch the full request details here
-            approvalRequestDetails.innerHTML = `
-                <p>You are approving request <strong>${requestId}</strong></p>
-                <p>Please sign below to confirm approval.</p>
-            `;
-            approvalModal.style.display = 'block';
-            initSignatureCanvas('approvalSignatureCanvas');
-        }
-
-        // Show rejection modal
-        function showRejectionModal(requestId) {
-            rejectionModal.style.display = 'block';
-        }
-
-        // Initialize signature canvas
-        function initSignatureCanvas(canvasId) {
-            const canvas = document.getElementById(canvasId);
-            const ctx = canvas.getContext('2d');
-            
-            ctx.strokeStyle = '#000';
-            ctx.lineWidth = 2;
-            ctx.lineCap = 'round';
-            
-            // Mouse events
-            canvas.addEventListener('mousedown', startDrawing);
-            canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('mouseup', stopDrawing);
-            canvas.addEventListener('mouseout', stopDrawing);
-            
-            // Touch events for mobile
-            canvas.addEventListener('touchstart', handleTouch);
-            canvas.addEventListener('touchmove', handleTouch);
-            canvas.addEventListener('touchend', stopDrawing);
-            
-            function startDrawing(e) {
-                isDrawing = true;
-                const rect = canvas.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                ctx.beginPath();
-                ctx.moveTo(x, y);
-            }
-            
-            function draw(e) {
-                if (!isDrawing) return;
-                const rect = canvas.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                ctx.lineTo(x, y);
-                ctx.stroke();
-            }
-            
-            function stopDrawing() {
-                if (isDrawing) {
-                    isDrawing = false;
-                    ctx.beginPath();
+// ===== UPDATED REJECT FUNCTION =====
+confirmRejectBtn.addEventListener('click', async function() {
+    const rejectionReason = document.getElementById('rejectionReason').value.trim();
+    
+    if (!rejectionReason) {
+        alert('Please provide a reason for rejection');
+        return;
+    }
+    
+    try {
+        const response = await fetch('http://localhost:3000/api/requests/reject', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                requestId: currentRequestId,
+                rejectionReason: rejectionReason
+            })
+        });
+        
+        if (response.ok) {
+            // Remove the rejected request card immediately
+            document.querySelectorAll('.request-card').forEach(card => {
+                if (card.querySelector(`button[data-request-id="${currentRequestId}"]`)) {
+                    card.remove();
                 }
-            }
-            
-            function handleTouch(e) {
-                e.preventDefault();
-                const touch = e.touches[0];
-                const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 
-                                                e.type === 'touchmove' ? 'mousemove' : 'mouseup', {
-                    clientX: touch.clientX,
-                    clientY: touch.clientY
-                });
-                canvas.dispatchEvent(mouseEvent);
-            }
-        }
-
-        // Clear signature
-        function clearSignature(canvasId) {
-            const canvas = document.getElementById(canvasId);
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            delete signatures[canvasId];
-        }
-
-        // Save signature
-        function saveSignature(canvasId) {
-            const canvas = document.getElementById(canvasId);
-            const dataURL = canvas.toDataURL();
-            signatures[canvasId] = dataURL;
-            alert('Signature saved successfully!');
-        }
-
-        // Confirm approval
-        confirmApproveBtn.addEventListener('click', async function() {
-            const approverName = document.getElementById('approverName').value.trim();
-            const signature = signatures['approvalSignatureCanvas'];
-            
-            if (!approverName) {
-                alert('Please enter your name/designation');
-                return;
-            }
-            
-            if (!signature) {
-                alert('Please provide your signature');
-                return;
-            }
-            
-            try {
-                const response = await fetch('http://localhost:3000/api/requests/approve', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        requestId: currentRequestId,
-                        approvalData: {
-                            approvedBy: approverName,
-                            signature: signature
-                        }
-                    })
-                });
-                
-                if (response.ok) {
-                    alert('Request approved successfully!');
-                    approvalModal.style.display = 'none';
-                    clearSignature('approvalSignatureCanvas');
-                    document.getElementById('approverName').value = '';
-                    loadPendingRequests();
-                } else {
-                    alert('Failed to approve request');
-                }
-            } catch (error) {
-                console.error('Approval error:', error);
-                alert('Failed to approve request');
-            }
-        });
-
-        // Confirm rejection
-        confirmRejectBtn.addEventListener('click', async function() {
-            const rejectionReason = document.getElementById('rejectionReason').value.trim();
-            
-            if (!rejectionReason) {
-                alert('Please provide a reason for rejection');
-                return;
-            }
-            
-            try {
-                const response = await fetch('http://localhost:3000/api/requests/reject', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        requestId: currentRequestId,
-                        rejectionReason: rejectionReason
-                    })
-                });
-                
-                if (response.ok) {
-                    alert('Request rejected successfully!');
-                    rejectionModal.style.display = 'none';
-                    document.getElementById('rejectionReason').value = '';
-                    loadPendingRequests();
-                } else {
-                    alert('Failed to reject request');
-                }
-            } catch (error) {
-                console.error('Rejection error:', error);
-                alert('Failed to reject request');
-            }
-        });
-
-        // Close modals when clicking X
-        document.querySelectorAll('.close').forEach(closeBtn => {
-            closeBtn.addEventListener('click', function() {
-                this.closest('.modal').style.display = 'none';
             });
-        });
-
-        // Close modals when clicking outside
-        window.addEventListener('click', function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.style.display = 'none';
+            
+            rejectionModal.style.display = 'none';
+            document.getElementById('rejectionReason').value = '';
+            
+            // Show message if no pending requests left
+            if (document.querySelectorAll('.request-card').length === 0) {
+                pendingRequestsContainer.innerHTML = '<p>No pending requests found.</p>';
             }
-        });
+        } else {
+            alert('Failed to reject request');
+        }
+    } catch (error) {
+        console.error('Rejection error:', error);
+        alert('Failed to reject request');
+    }
+});
+
+// Close modals when clicking X
+document.querySelectorAll('.close').forEach(closeBtn => {
+    closeBtn.addEventListener('click', function() {
+        this.closest('.modal').style.display = 'none';
+    });
+});
+
+// Close modals when clicking outside
+window.addEventListener('click', function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+    }
+});
     </script>
 </body>
 </html>

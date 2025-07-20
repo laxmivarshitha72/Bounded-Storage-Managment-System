@@ -444,6 +444,129 @@
     background-color: #d33b2c;
 }
 
+/* Archive Button Styles */
+.archive-container {
+    position: relative;
+    display: inline-block;
+}
+
+.archive-btn {
+    background-color: #EA4335; /* Google Red */
+}
+
+.archive-btn:hover {
+    background-color: #d33b2c; /* Darker Red */
+}
+
+.archive-dropdown {
+    display: none;
+    position: absolute;
+    background-color: white;
+    min-width: 160px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    z-index: 1;
+    margin-top: 5px;
+    right: 0;
+}
+
+.archive-dropdown.show {
+    display: block;
+}
+
+.archive-option {
+    color: #333;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.archive-option:hover {
+    background-color: #f1f1f1;
+}
+
+/* Archive Modal Styles */
+.archive-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.archive-modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 2rem;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 700px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.archive-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.archive-modal-title {
+    color: #4285F4;
+    font-size: 1.5rem;
+}
+
+.file-list {
+    list-style-type: none;
+    margin: 1rem 0;
+    padding: 0;
+}
+
+.file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem;
+    border-bottom: 1px solid #eee;
+}
+
+.file-item:hover {
+    background-color: #f9f9f9;
+}
+
+.file-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.file-action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #4285F4;
+    font-size: 0.9rem;
+}
+
+.file-action-btn:hover {
+    text-decoration: underline;
+}
+
+.file-action-btn.delete {
+    color: #EA4335;
+}
+
 </style>
 </head>
 <body>
@@ -489,6 +612,16 @@
                     <button class="action-btn" id="showAllBtn">All Components</button>
                     <button class="action-btn" id="showIssuedBtn">Issued Only</button>
                     <button class="action-btn" id="showStoredBtn">Stored Only</button>
+                    <!-- Add this to your component-actions div -->
+                    <div class="archive-container">
+                        <button class="action-btn archive-btn" id="archiveBtn">Archive</button>
+                        <div class="archive-dropdown" id="archiveDropdown">
+                            <button class="archive-option" id="uploadBtn">Upload File</button>
+                            <button class="archive-option" id="deleteBtn">Delete File</button>
+                            <button class="archive-option" id="renameBtn">Rename File</button>
+                            <button class="archive-option" id="viewBtn">View Files</button>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Components Table -->
@@ -737,6 +870,65 @@
         </div>
     </div>
 
+    <!-- Archive Modal -->
+<div id="archiveModal" class="archive-modal">
+    <div class="archive-modal-content">
+        <div class="archive-modal-header">
+            <h2 class="archive-modal-title" id="archiveModalTitle">Archive Management</h2>
+            <span class="close">&times;</span>
+        </div>
+        
+        <!-- Upload Section -->
+        <div id="uploadSection">
+            <h3>Upload File</h3>
+            <form id="uploadForm">
+                <div class="form-group">
+                    <label for="fileToUpload">Select file to upload:</label>
+                    <input type="file" id="fileToUpload" name="fileToUpload" required>
+                </div>
+                <div class="form-group">
+                    <label for="fileDescription">Description (optional):</label>
+                    <input type="text" id="fileDescription" name="fileDescription">
+                </div>
+                <button type="submit" class="submit-btn">Upload File</button>
+            </form>
+        </div>
+        
+        <!-- Delete Section -->
+        <div id="deleteSection" style="display:none;">
+            <h3>Delete File</h3>
+            <p>Select a file to delete:</p>
+            <ul class="file-list" id="deleteFileList">
+                <!-- Files will be populated here -->
+            </ul>
+        </div>
+        
+        <!-- Rename Section -->
+        <div id="renameSection" style="display:none;">
+            <h3>Rename File</h3>
+            <p>Select a file to rename:</p>
+            <ul class="file-list" id="renameFileList">
+                <!-- Files will be populated here -->
+            </ul>
+            <div id="renameFormContainer" style="display:none; margin-top:1rem;">
+                <div class="form-group">
+                    <label for="newFileName">New file name:</label>
+                    <input type="text" id="newFileName" required>
+                </div>
+                <button class="submit-btn" id="confirmRenameBtn">Rename File</button>
+            </div>
+        </div>
+        
+        <!-- View Section -->
+        <div id="viewSection" style="display:none;">
+            <h3>View Files</h3>
+            <ul class="file-list" id="viewFileList">
+                <!-- Files will be populated here -->
+            </ul>
+        </div>
+    </div>
+</div>
+
     <script>
     // DOM Elements
     const loginPage = document.getElementById('loginPage');
@@ -761,6 +953,253 @@
     const showAllBtn = document.getElementById('showAllBtn');
     const showIssuedBtn = document.getElementById('showIssuedBtn');
     const showStoredBtn = document.getElementById('showStoredBtn');
+    
+    // DOM Elements for Archive
+const archiveBtn = document.getElementById('archiveBtn');
+const archiveDropdown = document.getElementById('archiveDropdown');
+const uploadBtn = document.getElementById('uploadBtn');
+const deleteBtn = document.getElementById('deleteBtn');
+const renameBtn = document.getElementById('renameBtn');
+const viewBtn = document.getElementById('viewBtn');
+const archiveModal = document.getElementById('archiveModal');
+const archiveModalClose = archiveModal.querySelector('.close');
+const uploadSection = document.getElementById('uploadSection');
+const deleteSection = document.getElementById('deleteSection');
+const renameSection = document.getElementById('renameSection');
+const viewSection = document.getElementById('viewSection');
+const uploadForm = document.getElementById('uploadForm');
+const deleteFileList = document.getElementById('deleteFileList');
+const renameFileList = document.getElementById('renameFileList');
+const viewFileList = document.getElementById('viewFileList');
+const renameFormContainer = document.getElementById('renameFormContainer');
+const newFileName = document.getElementById('newFileName');
+const confirmRenameBtn = document.getElementById('confirmRenameBtn');
+
+// Sample files data (in a real app, this would come from your backend)
+let files = [
+    { id: 1, name: 'Component_Specs.pdf', description: 'Component specifications document', date: '2023-05-15' },
+    { id: 2, name: 'Storage_Guidelines.docx', description: 'Storage guidelines for components', date: '2023-06-20' },
+    { id: 3, name: 'Issue_Log_2023.xlsx', description: 'Component issue log for 2023', date: '2023-07-10' }
+];
+
+let selectedFileForRename = null;
+
+// Toggle dropdown
+archiveBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    archiveDropdown.classList.toggle('show');
+});
+
+// Close dropdown when clicking outside
+window.addEventListener('click', function() {
+    if (archiveDropdown.classList.contains('show')) {
+        archiveDropdown.classList.remove('show');
+    }
+});
+
+// Archive option click handlers
+uploadBtn.addEventListener('click', function() {
+    archiveDropdown.classList.remove('show');
+    showArchiveModal('upload');
+});
+
+deleteBtn.addEventListener('click', function() {
+    archiveDropdown.classList.remove('show');
+    showArchiveModal('delete');
+});
+
+renameBtn.addEventListener('click', function() {
+    archiveDropdown.classList.remove('show');
+    showArchiveModal('rename');
+});
+
+viewBtn.addEventListener('click', function() {
+    archiveDropdown.classList.remove('show');
+    showArchiveModal('view');
+});
+
+// Close archive modal
+archiveModalClose.addEventListener('click', function() {
+    archiveModal.style.display = 'none';
+    resetArchiveModal();
+});
+
+window.addEventListener('click', function(event) {
+    if (event.target === archiveModal) {
+        archiveModal.style.display = 'none';
+        resetArchiveModal();
+    }
+});
+
+// Show archive modal with specific section
+function showArchiveModal(section) {
+    archiveModal.style.display = 'block';
+    document.getElementById('archiveModalTitle').textContent = 
+        section.charAt(0).toUpperCase() + section.slice(1) + ' Files';
+    
+    // Hide all sections first
+    uploadSection.style.display = 'none';
+    deleteSection.style.display = 'none';
+    renameSection.style.display = 'none';
+    viewSection.style.display = 'none';
+    renameFormContainer.style.display = 'none';
+    
+    // Show the selected section
+    document.getElementById(section + 'Section').style.display = 'block';
+    
+    // Populate file lists if needed
+    if (section === 'delete') {
+        populateDeleteFileList();
+    } else if (section === 'rename') {
+        populateRenameFileList();
+    } else if (section === 'view') {
+        populateViewFileList();
+    }
+}
+
+// Reset archive modal
+function resetArchiveModal() {
+    uploadForm.reset();
+    selectedFileForRename = null;
+}
+
+// Populate delete file list
+function populateDeleteFileList() {
+    deleteFileList.innerHTML = '';
+    files.forEach(file => {
+        const li = document.createElement('li');
+        li.className = 'file-item';
+        li.innerHTML = `
+            <span>${file.name} - ${file.description}</span>
+            <button class="file-action-btn delete" data-id="${file.id}">Delete</button>
+        `;
+        deleteFileList.appendChild(li);
+    });
+    
+    // Add delete event listeners
+    document.querySelectorAll('#deleteFileList .file-action-btn.delete').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const fileId = parseInt(this.getAttribute('data-id'));
+            deleteFile(fileId);
+        });
+    });
+}
+
+// Populate rename file list
+function populateRenameFileList() {
+    renameFileList.innerHTML = '';
+    files.forEach(file => {
+        const li = document.createElement('li');
+        li.className = 'file-item';
+        li.innerHTML = `
+            <span>${file.name} - ${file.description}</span>
+            <button class="file-action-btn" data-id="${file.id}">Rename</button>
+        `;
+        renameFileList.appendChild(li);
+    });
+    
+    // Add rename event listeners
+    document.querySelectorAll('#renameFileList .file-action-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const fileId = parseInt(this.getAttribute('data-id'));
+            startRenameFile(fileId);
+        });
+    });
+}
+
+// Populate view file list
+function populateViewFileList() {
+    viewFileList.innerHTML = '';
+    files.forEach(file => {
+        const li = document.createElement('li');
+        li.className = 'file-item';
+        li.innerHTML = `
+            <div>
+                <strong>${file.name}</strong>
+                <p>${file.description}</p>
+                <small>Uploaded: ${file.date}</small>
+            </div>
+            <div class="file-actions">
+                <button class="file-action-btn" data-id="${file.id}">View</button>
+                <button class="file-action-btn" data-id="${file.id}">Download</button>
+            </div>
+        `;
+        viewFileList.appendChild(li);
+    });
+    
+    // Add view/download event listeners
+    document.querySelectorAll('#viewFileList .file-action-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const fileId = parseInt(this.getAttribute('data-id'));
+            const action = this.textContent.toLowerCase();
+            handleFileAction(fileId, action);
+        });
+    });
+}
+
+// Start renaming a file
+function startRenameFile(fileId) {
+    const file = files.find(f => f.id === fileId);
+    if (file) {
+        selectedFileForRename = file;
+        newFileName.value = file.name;
+        renameFormContainer.style.display = 'block';
+    }
+}
+
+// Confirm rename
+confirmRenameBtn.addEventListener('click', function() {
+    if (selectedFileForRename && newFileName.value.trim()) {
+        selectedFileForRename.name = newFileName.value.trim();
+        populateRenameFileList();
+        renameFormContainer.style.display = 'none';
+        selectedFileForRename = null;
+        alert('File renamed successfully!');
+    }
+});
+
+// Delete a file
+function deleteFile(fileId) {
+    if (confirm('Are you sure you want to delete this file?')) {
+        files = files.filter(f => f.id !== fileId);
+        populateDeleteFileList();
+        alert('File deleted successfully!');
+    }
+}
+
+// Handle view/download actions
+function handleFileAction(fileId, action) {
+    const file = files.find(f => f.id === fileId);
+    if (file) {
+        if (action === 'view') {
+            alert(`Viewing file: ${file.name}\nDescription: ${file.description}`);
+        } else if (action === 'download') {
+            alert(`Downloading file: ${file.name}`);
+            // In a real app, this would initiate a download
+        }
+    }
+}
+
+// Upload form submission
+uploadForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const fileInput = document.getElementById('fileToUpload');
+    const description = document.getElementById('fileDescription').value;
+    
+    if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const newFile = {
+            id: files.length + 1,
+            name: file.name,
+            description: description || 'No description provided',
+            date: new Date().toISOString().split('T')[0]
+        };
+        
+        files.push(newFile);
+        alert('File uploaded successfully!');
+        uploadForm.reset();
+    }
+});
     
     let currentUser = null;
     let refreshInterval;

@@ -18,12 +18,21 @@
     .content {
       margin-left: 20px;
     }
+    .form-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
     .signature {
       margin-top: 60px;
       display: flex;
       justify-content: space-between;
       margin-left: 20px;
       margin-right: 20px;
+    }
+    select, input[type="date"] {
+      padding: 5px;
+      font-size: 16px;
     }
   </style>
 </head>
@@ -32,15 +41,50 @@
   <div class="title">Issued</div>
 
   <div class="content">
-    <p>The above components are issued to KR "Date" from bonded store.</p>
-    
-    <p>To,<br>
-    The Technology Director, R & QA.</p>
+    <p>
+      The above components are issued to KR 
+      <span class="form-inline">
+        "<input type="date" id="issueDate" name="issueDate">"
+      </span> 
+      from bonded store.
+
+
+
+
+
+
+
+
+
+    </p>
+
+    <p>
+
+
+
+
+
+      To,<br>
+      The Technology Director, R & QA.
+    </p>
   </div>
 
   <div class="signature">
-    <div>Issued by: _____________</div>
-    <div>Received by: _____________</div>
+    <div>
+      Issued by: ____________________
+    </div>
+
+    <div>
+      Received by: 
+	<select name="issuedBy" id="issuedBy">
+        <option value="">--Select--</option>
+        <option value="Unnata Layek - SC 'G'">Unnata Layek - SC 'G'</option>
+        <option value="Arun Kumar Mahodaya - SC 'F'">Arun Kumar Mahodaya - SC 'F'</option>
+        <option value="N.Beebamma - SC 'F'">N.Beebamma - SC 'F'</option>
+	<option value="Kumar Rahasyam - SC 'E'">Kumar Rahasyam - SC 'E'</option>
+	<option value="Sameer Kadam - SC 'F'">Sameer Kadam - SC 'F'</option>
+      </select>
+    </div>
   </div>
 
 </body>

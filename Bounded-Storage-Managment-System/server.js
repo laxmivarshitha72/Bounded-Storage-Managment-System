@@ -3,17 +3,33 @@ const fileUpload = require('express-fileupload');
 const xlsx = require('xlsx');
 const cors = require('cors');
 const fs = require('fs');
+const path = require('path');
 const { promisify } = require('util');
 const writeFile = promisify(fs.writeFile);
 const readFile = promisify(fs.readFile);
+const mkdir = promisify(fs.mkdir);
+const unlink = promisify(fs.unlink);
+const readdir = promisify(fs.readdir);
+const rename = promisify(fs.rename);
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(fileUpload());
+app.use('/uploads', express.static('uploads'));
 
 const PORT = 3000;
 const EXCEL_FILE = 'inventory.xlsx';
+const UPLOAD_DIR = 'uploads';
+
+// Ensure upload directory exists
+async function ensureUploadDir() {
+    try {
+        await mkdir(UPLOAD_DIR, { recursive: true });
+    } catch (err) {
+        if (err.code !== 'EEXIST') throw err;
+    }
+}
 
 // Load data from Excel (or create new file if it doesn't exist)
 async function loadExcel() {
@@ -89,6 +105,17 @@ function generateComponentId(existingData) {
     
     const maxId = Math.max(0, ...existingIds);
     return `CMP-${(maxId + 1).toString().padStart(3, '0')}`;
+}
+
+// Generate unique file ID
+function generateFileId(existingFiles) {
+    const existingIds = existingFiles.map(file => {
+        const match = file.id.match(/FILE-(\d+)/);
+        return match ? parseInt(match[1]) : 0;
+    });
+    
+    const maxId = Math.max(0, ...existingIds);
+    return `FILE-${(maxId + 1).toString().padStart(3, '0')}`;
 }
 
 // API Endpoints
@@ -349,6 +376,138 @@ app.post('/api/requests/reject', async (req, res) => {
     }
 });
 
+// Archive File Endpoints
+
+// Get all archived files
+app.get('/api/archive/files', async (req, res) => {
+    try {
+        await ensureUploadDir();
+        const files = await readdir(UPLOAD_DIR);
+        
+        const fileDetails = await Promise.all(files.map(async (filename) => {
+            const filePath = path.join(UPLOAD_DIR, filename);
+            const stats = await fs.promises.stat(filePath);
+            
+            return {
+                id: `FILE-${filename.split('-')[0]}`,
+                name: filename,
+                path: `/uploads/${filename}`,
+                size: stats.size,
+                uploadDate: stats.birthtime.toISOString(),
+                description: filename.includes('_desc_') ? 
+                    filename.split('_desc_')[1].split('.')[0].replace(/-/g, ' ') : 
+                    'No description'
+            };
+        }));
+        
+        res.json(fileDetails);
+    } catch (error) {
+        console.error("Error fetching archived files:", error);
+        res.status(500).json({ error: "Failed to load archived files" });
+    }
+});
+
+// Upload file to archive
+app.post('/api/archive/upload', async (req, res) => {
+    try {
+        await ensureUploadDir();
+        
+        if (!req.files || !req.files.file) {
+            return res.status(400).json({ error: "No file uploaded" });
+        }
+        
+        const file = req.files.file;
+        const description = req.body.description || '';
+        const sanitizedDescription = description.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
+        const fileExt = path.extname(file.name);
+        const fileNameBase = path.basename(file.name, fileExt);
+        const timestamp = Date.now();
+        
+        const newFileName = `${timestamp}_${fileNameBase}_desc_${sanitizedDescription}${fileExt}`;
+        const filePath = path.join(UPLOAD_DIR, newFileName);
+        
+        await file.mv(filePath);
+        
+        res.json({ 
+            success: true, 
+            message: "File uploaded successfully",
+            filename: newFileName,
+            path: `/uploads/${newFileName}`
+        });
+    } catch (error) {
+        console.error("Error uploading file:", error);
+        res.status(500).json({ error: "Failed to upload file" });
+    }
+});
+
+// Delete file from archive
+app.delete('/api/archive/files/:filename', async (req, res) => {
+    try {
+        const filename = req.params.filename;
+        const filePath = path.join(UPLOAD_DIR, filename);
+        
+        if (!fs.existsSync(filePath)) {
+            return res.status(404).json({ error: "File not found" });
+        }
+        
+        await unlink(filePath);
+        res.json({ success: true, message: "File deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting file:", error);
+        res.status(500).json({ error: "Failed to delete file" });
+    }
+});
+
+// Rename file in archive
+app.put('/api/archive/files/:filename', async (req, res) => {
+    try {
+        const oldFilename = req.params.filename;
+        const newName = req.body.newName;
+        
+        if (!newName) {
+            return res.status(400).json({ error: "New name is required" });
+        }
+        
+        const oldPath = path.join(UPLOAD_DIR, oldFilename);
+        const fileExt = path.extname(oldFilename);
+        const newFilename = `${newName}${fileExt}`;
+        const newPath = path.join(UPLOAD_DIR, newFilename);
+        
+        if (!fs.existsSync(oldPath)) {
+            return res.status(404).json({ error: "File not found" });
+        }
+        
+        await rename(oldPath, newPath);
+        
+        res.json({ 
+            success: true, 
+            message: "File renamed successfully",
+            oldName: oldFilename,
+            newName: newFilename
+        });
+    } catch (error) {
+        console.error("Error renaming file:", error);
+        res.status(500).json({ error: "Failed to rename file" });
+    }
+});
+
+// Download file from archive
+app.get('/api/archive/files/download/:filename', async (req, res) => {
+    try {
+        const filename = req.params.filename;
+        const filePath = path.join(UPLOAD_DIR, filename);
+        
+        if (!fs.existsSync(filePath)) {
+            return res.status(404).json({ error: "File not found" });
+        }
+        
+        res.download(filePath, filename);
+    } catch (error) {
+        console.error("Error downloading file:", error);
+        res.status(500).json({ error: "Failed to download file" });
+    }
+});
+
 // Create test data endpoint (for development)
 app.post('/api/create-test-data', async (req, res) => {
     try {
@@ -381,9 +540,11 @@ app.post('/api/create-test-data', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-    console.log(`API Endpoints:
+// Initialize server
+ensureUploadDir().then(() => {
+    app.listen(PORT, () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+        console.log(`API Endpoints:
   POST /api/login (regular user login)
   POST /api/admin/login (admin login)
   GET  /api/inventory
@@ -392,5 +553,17 @@ app.listen(PORT, () => {
   POST /api/storage
   POST /api/requests/approve
   POST /api/requests/reject
+  
+  Archive Endpoints:
+  GET    /api/archive/files
+  POST   /api/archive/upload
+  DELETE /api/archive/files/:filename
+  PUT    /api/archive/files/:filename (rename)
+  GET    /api/archive/files/download/:filename
+  
   POST /api/create-test-data (development only)`);
+    });
+}).catch(err => {
+    console.error("Failed to initialize upload directory:", err);
+    process.exit(1);
 });
